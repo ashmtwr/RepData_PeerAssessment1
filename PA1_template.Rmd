@@ -1,25 +1,117 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Rep_Resrch_PA_1"
+author: "Ashish M Tiwari"
+date: "Sunday, April 19, 2015"
+output: html_document
 ---
-
 
 ## Loading and preprocessing the data
 
+```{r}
+df <- read.csv("C:/Users/AMT0H04/Documents/AMT/Personal/Kaggle/03-Research/02-R/activity.csv",header=TRUE)
+head(df)
+str(df)
+summary(df)
+```
 
+## Mean and Median of total number of steps taken per day
 
-## What is mean total number of steps taken per day?
+```{r}
+library(ggplot2)
+steps <- tapply(df$steps, df$date, FUN=sum, na.rm=TRUE)
+qplot(steps, binwidth=1000, xlab="total number of steps per day")
+mean(steps, na.rm=TRUE)
+median(steps, na.rm=TRUE)
+```
 
+## average daily activity pattern
 
-
-## What is the average daily activity pattern?
-
-
+```{r}
+library(ggplot2)
+avg <- aggregate(x=list(steps=df$steps), by=list(interval=df$interval),
+                      FUN=mean, na.rm=TRUE)
+ggplot(data=avg, aes(x=interval, y=steps)) +
+    geom_line() +
+    xlab("5-minute interval") +
+    ylab("average number of steps taken")
+avg[which.max(avg$steps),]
+```
 
 ## Imputing missing values
 
+```{r}
+missing.values <- is.na(df$steps)
+table(missing.values)
+
+fill.value <- function(steps, interval) {
+    filled <- NA
+    if (!is.na(steps))
+        filled <- c(steps)
+    else
+        filled <- (avg[avg$interval==interval, "steps"])
+    return(filled)
+}
+df.rmna <- df
+df.rmna$steps <- mapply(fill.value, df.rmna$steps, df.rmna$interval)
+
+total.steps <- tapply(df.rmna$steps, df.rmna$date, FUN=sum)
+qplot(total.steps, binwidth=1000, xlab="total number of steps taken each day")
+mean(total.steps)
+median(total.steps)
+```
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+## Differences in activity patterns between weekdays and weekends
+
+```{r}
+dayofweek <- function(date) {
+    day <- weekdays(date)
+    if (day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+        return("weekday")
+    else if (day %in% c("Saturday", "Sunday"))
+        return("weekend")
+    else
+        stop("invalid date")
+}
+df.rmna$date <- as.Date(df.rmna$date)
+df.rmna$day <- sapply(df.rmna$date, FUN=dayofweek)
+
+averages <- aggregate(steps ~ interval + day, data=df.rmna, mean)
+ggplot(averages, aes(interval, steps)) + geom_line() + facet_grid(.~ day) +
+    xlab("5-minute interval") + ylab("Number of steps")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
