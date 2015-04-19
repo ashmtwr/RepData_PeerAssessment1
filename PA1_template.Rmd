@@ -8,7 +8,7 @@ output: html_document
 ## Loading and preprocessing the data
 
 ```{r}
-df <- read.csv("C:/Users/AMT0H04/Documents/AMT/Personal/Kaggle/03-Research/02-R/activity.csv",header=TRUE)
+df <- read.csv("./activity.csv",header=TRUE)
 head(df)
 str(df)
 summary(df)
